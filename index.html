@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FisioPro - Plataforma Integral de Fisioterapia</title>
+    <title>FisioPro - Plataforma Cloud en Tiempo Real</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
@@ -12,7 +13,7 @@
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-2">
                 <div class="bg-sky-600 text-white p-2 rounded-lg font-bold text-xl">FP</div>
-                <span class="text-xl font-bold text-slate-900">FisioPro <span class="text-sky-600 text-sm font-normal">Clínica Avanzada</span></span>
+                <span class="text-xl font-bold text-slate-900">FisioPro <span class="text-sky-600 text-sm font-normal">Cloud Edition</span></span>
             </div>
             <div class="space-x-2">
                 <button onclick="switchView('patient')" id="btnPatient" class="px-4 py-2 text-sm font-medium rounded-lg bg-sky-600 text-white transition">Portal Pacientes</button>
@@ -25,52 +26,48 @@
 
         <div id="patientView" class="space-y-8">
             <div class="bg-gradient-to-r from-sky-600 to-cyan-700 rounded-2xl p-8 text-white shadow-lg">
-                <h1 class="text-3xl font-bold mb-2">Cuida tu cuerpo, recupera tu bienestar</h1>
-                <p class="text-sky-100 max-w-xl">Agenda tu cita online, revisa tus rutinas de ejercicios asignadas por tu fisioterapeuta y comunícate directamente con él.</p>
+                <h1 class="text-3xl font-bold mb-2">Plataforma Médica Interactiva</h1>
+                <p class="text-sky-100 max-w-xl">Reserva tu cita, consulta tus ejercicios personalizados en la nube y chatea directamente con tu fisio.</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="md:col-span-2 space-y-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">📅 Reservar Cita</h2>
+                        <h2 class="text-xl font-bold text-slate-900 mb-4">📅 Reservar Cita Online</h2>
                         <form id="appointmentForm" class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold mb-1">Nombre Completo</label>
-                                <input type="text" id="pName" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Ej. Carlos Ruiz">
+                                <input type="text" id="pName" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Ej. Ana Pérez">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold mb-1">Teléfono</label>
-                                <input type="tel" id="pPhone" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Ej. 611223344">
+                                <input type="tel" id="pPhone" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Ej. 600112233">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold mb-1">Tratamiento</label>
-                                <select id="pTreatment" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                                <select id="pTreatment" class="w-full p-3 border border-slate-300 rounded-xl">
                                     <option>Fisioterapia Deportiva</option>
-                                    <option>Rehabilitación Postquirúrgica</option>
-                                    <option>Osteopatía y Columna</option>
-                                    <option>Punción Seca</option>
+                                    <option>Rehabilitación Lesiones</option>
+                                    <option>Osteopatía</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold mb-1">Fecha y Hora</label>
-                                <input type="datetime-local" id="pDate" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                                <input type="datetime-local" id="pDate" required class="w-full p-3 border border-slate-300 rounded-xl">
                             </div>
                             <div class="sm:col-span-2">
-                                <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Confirmar Cita</button>
+                                <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Confirmar Cita en la Nube</button>
                             </div>
                         </form>
                     </div>
 
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">💬 Chat Directo con tu Fisioterapeuta</h2>
+                        <h2 class="text-xl font-bold text-slate-900 mb-4">💬 Chat en Directo</h2>
                         <div id="chatBox" class="h-64 overflow-y-auto bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 space-y-3">
-                            <div class="bg-white p-3 rounded-xl shadow-xs max-w-md border border-slate-100">
-                                <span class="text-xs font-bold text-sky-600 block">Fisioterapeuta</span>
-                                <p class="text-sm">¡Hola! Recuerda realizar tus estiramientos diarios. Escríbeme si tienes dudas.</p>
-                            </div>
+                            <p class="text-slate-400 text-sm text-center">Cargando mensajes...</p>
                         </div>
                         <form id="chatForm" class="flex gap-2">
-                            <input type="text" id="chatInput" placeholder="Escribe tu consulta aquí..." class="flex-1 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" required>
+                            <input type="text" id="chatInput" placeholder="Escribe un mensaje al fisio..." class="flex-1 p-3 border border-slate-300 rounded-xl" required>
                             <button type="submit" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-slate-800 transition">Enviar</button>
                         </form>
                     </div>
@@ -78,9 +75,9 @@
 
                 <div class="space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">🏋️ Mis Ejercicios</h2>
+                        <h2 class="text-xl font-bold text-slate-900 mb-4">🏋️ Ejercicios Asignados</h2>
                         <div id="patientExercisesList" class="space-y-4">
-                            <p class="text-slate-500 text-sm">No hay ejercicios asignados todavía.</p>
+                            <p class="text-slate-400 text-sm">Cargando ejercicios...</p>
                         </div>
                     </div>
                 </div>
@@ -89,49 +86,35 @@
 
         <div id="adminView" class="hidden space-y-8">
             <div id="adminLogin" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">Acceso Exclusivo Fisioterapeuta</h2>
-                <p class="text-slate-500 text-sm mb-6">Introduce tu contraseña de acceso para gestionar la clínica.</p>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Panel Fisioterapeuta</h2>
+                <p class="text-slate-500 text-sm mb-6">Introduce la clave de administración.</p>
                 <form id="loginForm" class="space-y-4">
-                    <input type="password" id="adminPassword" placeholder="Contraseña (fisio123)" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                    <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition">Entrar al Panel</button>
+                    <input type="password" id="adminPassword" placeholder="Contraseña (fisio123)" required class="w-full p-3 border border-slate-300 rounded-xl">
+                    <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition">Entrar</button>
                 </form>
             </div>
 
             <div id="adminDashboard" class="hidden space-y-8">
                 <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-900">Panel de Control General</h2>
-                        <p class="text-slate-500 text-sm">Gestiona citas, pacientes y sube ejercicios personalizados.</p>
-                    </div>
-                    <button onclick="logoutAdmin()" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl font-semibold hover:bg-rose-100 transition">Cerrar Sesión</button>
+                    <h2 class="text-2xl font-bold text-slate-900">Panel de Control General</h2>
+                    <button onclick="logoutAdmin()" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl font-semibold hover:bg-rose-100 transition">Salir</button>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-900 mb-4">➕ Añadir Ejercicio para Pacientes</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-4">➕ Añadir Ejercicio</h3>
                         <form id="exerciseForm" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Título del Ejercicio</label>
-                                <input type="text" id="exTitle" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Ej. Estiramiento de Isquiotibiales">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Descripción / Instrucciones</label>
-                                <textarea id="exDesc" rows="3" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Mantener la postura 30 segundos..."></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Enlace de Imagen o GIF ilustrativo</label>
-                                <input type="url" id="exImage" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="https://ejemplo.com/imagen.jpg">
-                            </div>
-                            <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Publicar Ejercicio</button>
+                            <input type="text" id="exTitle" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Título del ejercicio">
+                            <textarea id="exDesc" rows="3" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Instrucciones..."></textarea>
+                            <input type="url" id="exImage" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="URL de la imagen (ej. enlace de Unsplash)">
+                            <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Guardar en Supabase</button>
                         </form>
                     </div>
 
-                    <div class="space-y-6">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <h3 class="text-lg font-bold text-slate-900 mb-4">📅 Citas Solicitadas</h3>
-                            <div id="adminAppointmentsList" class="space-y-3">
-                                <p class="text-slate-500 text-sm">No hay citas agendadas.</p>
-                            </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-900 mb-4">📅 Citas en la Nube</h3>
+                        <div id="adminAppointmentsList" class="space-y-3">
+                            <p class="text-slate-400 text-sm">Cargando citas...</p>
                         </div>
                     </div>
                 </div>
@@ -140,12 +123,12 @@
     </main>
 
     <script>
-        // Lógica de Navegación y Datos
-        let appointments = JSON.parse(localStorage.getItem('fisio_appointments')) || [];
-        let exercises = JSON.parse(localStorage.getItem('fisio_exercises')) || [
-            { title: "Movilidad Cervical", desc: "Giros suaves hacia ambos lados 10 repeticiones.", image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=400" }
-        ];
-        let chatMessages = JSON.parse(localStorage.getItem('fisio_chat')) || [];
+        // --- CONFIGURACIÓN DE SUPABASE (YA INTEGRADA) ---
+        const SUPABASE_URL = 'https://tgasxosyzgurpwqkcvnv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Qv8Jvia0LRpj8-SWiKr2ZQ_zhuPi06t';
+        
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function switchView(view) {
             if(view === 'patient') {
@@ -164,131 +147,25 @@
         // Login Admin
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const pass = document.getElementById('adminPassword').value;
-            if(pass === 'fisio123') {
+            if(document.getElementById('adminPassword').value === 'fisio123') {
                 document.getElementById('adminLogin').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
-                renderAdminData();
+                fetchAdminAppointments();
             } else {
-                alert('Contraseña incorrecta. (Prueba con: fisio123)');
+                alert('Contraseña incorrecta (prueba: fisio123)');
             }
         });
 
         function logoutAdmin() {
             document.getElementById('adminLogin').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('hidden');
-            document.getElementById('adminPassword').value = '';
         }
 
-        // Registro de Cita
-        document.getElementById('appointmentForm').addEventListener('submit', (e) => {
+        // --- FUNCIONES DE CONEXIÓN CON SUPABASE ---
+
+        // 1. Citas
+        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const newApp = {
+            const { error } = await _supabase.from('appointments').insert([{
                 name: document.getElementById('pName').value,
-                phone: document.getElementById('pPhone').value,
-                treatment: document.getElementById('pTreatment').value,
-                date: document.getElementById('pDate').value
-            };
-            appointments.push(newApp);
-            localStorage.setItem('fisio_appointments', JSON.stringify(appointments));
-            alert('¡Cita reservada con éxito!');
-            e.target.reset();
-            renderAdminData();
-        });
-
-        // Subir Ejercicio
-        document.getElementById('exerciseForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newEx = {
-                title: document.getElementById('exTitle').value,
-                desc: document.getElementById('exDesc').value,
-                image: document.getElementById('exImage').value
-            };
-            exercises.push(newEx);
-            localStorage.setItem('fisio_exercises', JSON.stringify(exercises));
-            alert('¡Ejercicio publicado correctamente para los pacientes!');
-            e.target.reset();
-            renderExercises();
-        });
-
-        // Chat simulación
-        document.getElementById('chatForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const text = document.getElementById('chatInput').value;
-            chatMessages.push({ sender: 'Paciente', text });
-            localStorage.setItem('fisio_chat', JSON.stringify(chatMessages));
-            renderChat();
-            e.target.reset();
-        });
-
-        function renderChat() {
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML = `
-                <div class="bg-white p-3 rounded-xl shadow-xs max-w-md border border-slate-100">
-                    <span class="text-xs font-bold text-sky-600 block">Fisioterapeuta</span>
-                    <p class="text-sm">¡Hola! Recuerda realizar tus estiramientos diarios. Escríbeme si tienes dudas.</p>
-                </div>
-            `;
-            chatMessages.forEach(msg => {
-                chatBox.innerHTML += `
-                    <div class="bg-sky-50 p-3 rounded-xl shadow-xs max-w-md ml-auto border border-sky-100 text-right">
-                        <span class="text-xs font-bold text-sky-800 block">${msg.sender}</span>
-                        <p class="text-sm text-slate-700">${msg.text}</p>
-                    </div>
-                `;
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function renderExercises() {
-            const list = document.getElementById('patientExercisesList');
-            list.innerHTML = '';
-            if(exercises.length === 0) {
-                list.innerHTML = '<p class="text-slate-500 text-sm">No hay ejercicios asignados todavía.</p>';
-                return;
-            }
-            exercises.forEach(ex => {
-                list.innerHTML += `
-                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <img src="${ex.image}" alt="${ex.title}" class="w-full h-32 object-cover">
-                        <div class="p-4">
-                            <h4 class="font-bold text-slate-900">${ex.title}</h4>
-                            <p class="text-xs text-slate-600 mt-1">${ex.desc}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderAdminData() {
-            const list = document.getElementById('adminAppointmentsList');
-            list.innerHTML = '';
-            if(appointments.length === 0) {
-                list.innerHTML = '<p class="text-slate-500 text-sm">No hay citas agendadas.</p>';
-                return;
-            }
-            appointments.forEach((app, index) => {
-                list.innerHTML += `
-                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-sm">
-                        <div>
-                            <strong>${app.name}</strong> (${app.treatment})<br>
-                            <span class="text-xs text-slate-500">🕒 ${app.date.replace('T', ' ')} - 📞 ${app.phone}</span>
-                        </div>
-                        <button onclick="deleteApp(${index})" class="text-rose-600 font-bold hover:underline text-xs">Eliminar</button>
-                    </div>
-                `;
-            });
-        }
-
-        window.deleteApp = function(index) {
-            appointments.splice(index, 1);
-            localStorage.setItem('fisio_appointments', JSON.stringify(appointments));
-            renderAdminData();
-        }
-
-        // Cargar vista inicial
-        renderExercises();
-        renderChat();
-    </script>
-</body>
-</html>
+                phone: document.getElementById('

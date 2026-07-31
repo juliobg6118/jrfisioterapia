@@ -1,9 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
+  --jr-aquamarina: #13b8a6;
+  --jr-aquamarina-dark: #062f2e;
+  --jr-graphite: #101d1b;
+  --jr-off-white: #f7faf9;
 }
 
 html {
@@ -14,8 +20,12 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background:
+    radial-gradient(circle at top left, rgba(19, 184, 166, 0.12), transparent 34rem),
+    linear-gradient(180deg, #ffffff 0%, var(--jr-off-white) 45%, #eef4f2 100%);
+  color: var(--jr-graphite);
+  font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 button,
@@ -25,9 +35,23 @@ textarea {
   font: inherit;
 }
 
+::selection {
+  background: rgba(19, 184, 166, 0.22);
+  color: var(--jr-aquamarina-dark);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+}
+
 @layer components {
   .card {
-    @apply rounded-3xl border border-slate-200 bg-white shadow-soft;
+    @apply rounded-3xl border border-slate-200 bg-white/95 shadow-soft backdrop-blur;
   }
 
   .input {
@@ -35,11 +59,11 @@ textarea {
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-2xl bg-sky-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl bg-sky-600 px-5 py-3 font-extrabold text-white shadow-sm shadow-sky-100 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-danger {

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FisioGest - Citas y Clientes</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 20px;
+        }
+        h2 { font-size: 1.25rem; margin-top: 0; color: var(--primary-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: var(--primary-dark); }
+        ul { list-style: none; padding: 0; }
+        li {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+            font-size: 0.8rem;
+        }
+        .delete-btn:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>FisioGest Pro</h1>
+            <p>Sistema de gestión de citas y pacientes</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📅 Agendar Nueva Cita</h2>
+                <form id="appointmentForm">
+                    <label for="clientName">Nombre del Paciente:</label>
+                    <input type="text" id="clientName" required placeholder="Ej. Ana Pérez">
+
+                    <label for="clientPhone">Teléfono:</label>
+                    <input type="tel" id="clientPhone" required placeholder="Ej. 600123456">
+
+                    <label for="treatment">Tipo de Fisioterapia:</label>
+                    <select id="treatment">
+                        <option value="Fisioterapia Deportiva">Fisioterapia Deportiva</option>
+                        <option value="Rehabilitación de Lesiones">Rehabilitación de Lesiones</option>
+                        <option value="Fisioterapia de Espalda">Fisioterapia de Espalda</option>
+                        <option value="Masaje Descontracturante">Masaje Descontracturante</option>
+                    </select>
+
+                    <label for="appointmentDate">Fecha y Hora:</label>
+                    <input type="datetime-local" id="appointmentDate" required>
+
+                    <button type="submit">Guardar Cita</button>
+                </form>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h2>📋 Próximas Citas</h2>
+                    <ul id="appointmentsList">
+                        <p style="color: #64748b; font-size: 0.9rem;">No hay citas registradas aún.</p>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>👥 Base de Clientes</h2>
+                    <ul id="clientsList">
+                        <p style="color: #64748b; font-size: 0.9rem;">No hay clientes registrados aún.</p>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const appointmentForm = document.getElementById('appointmentForm');
+        const appointmentsList = document.getElementById('appointmentsList');
+        const clientsList = document.getElementById('clientsList');
+
+        // Cargar datos guardados previamente en el navegador si existen
+        let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+        let clients = JSON.parse(localStorage.getItem('clients')) || [];
+
+        function renderData() {
+            // Renderizar Citas
+            appointmentsList.innerHTML = '';
+            if (appointments.length === 0) {
+                appointmentsList.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay citas registradas aún.</p>';
+            } else {
+                appointments.forEach((app, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div>
+                            <strong>${app.name}</strong> (${app.treatment})<br>
+                            <small>🕒 ${app.date.replace('T', ' ')}</small>
+                        </div>
+                        <button class="delete-btn" onclick="deleteAppointment(${index})">X</button>
+                    `;
+                    appointmentsList.appendChild(li);
+                });
+            }
+
+            // Renderizar Clientes únicos
+            clientsList.innerHTML = '';
+            if (clients.length === 0) {
+                clientsList.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay clientes registrados aún.</p>';
+            } else {
+                clients.forEach((client) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span><strong>${client.name}</strong></span> <small>📞 ${client.phone}</small>`;
+                    clientsList.appendChild(li);
+                });
+            }
+        }
+
+        appointmentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('clientName').value;
+            const phone = document.getElementById('clientPhone').value;
+            const treatment = document.getElementById('treatment').value;
+            const date = document.getElementById('appointmentDate').value;
+
+            // Guardar cita
+            appointments.push({ name, phone, treatment, date });
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+
+            // Guardar cliente si no existe ya por teléfono
+            if (!clients.some(c => c.phone === phone)) {
+                clients.push({ name, phone });
+                localStorage.setItem('clients', JSON.stringify(clients));
+            }
+
+            renderData();
+            appointmentForm.reset();
+        });
+
+        window.deleteAppointment = function(index) {
+            appointments.splice(index, 1);
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+            renderData();
+        }
+
+        // Inicializar la vista
+        renderData();
+    </script>
+</body>
+</html>

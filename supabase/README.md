@@ -1,18 +1,23 @@
 # Supabase para FisioPro
 
-La app espera estas tablas y un bucket público para personalización de marca.
+La app espera estas tablas. Las citas ahora las crea solo el fisioterapeuta y cada paciente solo ve las citas asignadas a su email (`patient_email`).
 
 ## Tablas principales
 
 ```sql
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
+  patient_email text not null,
   name text not null,
   phone text not null,
   treatment text not null,
   date timestamp not null,
   created_at timestamptz not null default now()
 );
+
+-- Si ya tenías creada appointments antes, ejecuta también:
+alter table public.appointments
+add column if not exists patient_email text;
 
 create table if not exists public.messages (
   id uuid primary key default gen_random_uuid(),
@@ -41,19 +46,14 @@ values ('main', 'FisioPro')
 on conflict (id) do nothing;
 ```
 
-## Bucket para logos
+## Personalización de logo
 
-Crea en Supabase Storage un bucket público llamado:
+La app ya no necesita un bucket de Storage para el logo. El fisio puede:
 
-```txt
-branding
-```
+- subir una imagen pequeña desde el ordenador, que se guardará como `data:` URL en `clinic_settings.logo_url`, o
+- pegar una URL pública de imagen.
 
-La app sube los logos a:
-
-```txt
-branding/logos/...
-```
+Recomendado: logo PNG/WebP cuadrado, menor de 750 KB.
 
 ## Realtime
 
@@ -66,6 +66,42 @@ exercises
 clinic_settings
 ```
 
+## Políticas RLS recomendadas para citas
+
+Cambia `admin@fisiopro.com` por tu correo real de administrador si lo modificas en `VITE_ADMIN_EMAIL`.
+
+```sql
+alter table public.appointments enable row level security;
+
+create policy "patients can read only their appointments"
+on public.appointments
+for select
+to authenticated
+using (
+  lower(patient_email) = lower(auth.jwt() ->> 'email')
+  or lower(auth.jwt() ->> 'email') = 'admin@fisiopro.com'
+);
+
+create policy "admin can create appointments"
+on public.appointments
+for insert
+to authenticated
+with check (lower(auth.jwt() ->> 'email') = 'admin@fisiopro.com');
+
+create policy "admin can update appointments"
+on public.appointments
+for update
+to authenticated
+using (lower(auth.jwt() ->> 'email') = 'admin@fisiopro.com')
+with check (lower(auth.jwt() ->> 'email') = 'admin@fisiopro.com');
+
+create policy "admin can delete appointments"
+on public.appointments
+for delete
+to authenticated
+using (lower(auth.jwt() ->> 'email') = 'admin@fisiopro.com');
+```
+
 ## Seguridad recomendada
 
-Para producción, activa RLS y crea políticas separando pacientes y administrador. El frontend decide el panel admin por `VITE_ADMIN_EMAIL`, pero las operaciones sensibles deben reforzarse con políticas en Supabase.
+El frontend ya oculta el formulario de citas al paciente y filtra por `patient_email`, pero para que sea estricto de verdad debes activar RLS en Supabase con las políticas anteriores.

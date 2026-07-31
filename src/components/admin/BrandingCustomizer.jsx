@@ -1,25 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_BRANDING } from '../../config/constants';
 import { supabase } from '../../supabaseClient';
 import Alert from '../common/Alert';
 import SectionHeader from '../common/SectionHeader';
 
 const SETTINGS_ID = 'main';
-const BRANDING_BUCKET = 'branding';
+const MAX_LOGO_SIZE_BYTES = 750 * 1024;
 
-function sanitizeFileName(fileName) {
-  return fileName
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9.]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
   const [clinicName, setClinicName] = useState(branding?.clinicName || DEFAULT_BRANDING.clinicName);
   const [logoUrl, setLogoUrl] = useState(branding?.logoUrl || '');
   const [file, setFile] = useState(null);
+  const [filePreview, setFilePreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState(null);
 
@@ -28,21 +29,28 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
     setLogoUrl(branding?.logoUrl || '');
   }, [branding?.clinicName, branding?.logoUrl]);
 
-  const uploadLogoIfNeeded = async () => {
+  useEffect(() => {
+    if (!file) {
+      setFilePreview('');
+      return undefined;
+    }
+
+    const preview = URL.createObjectURL(file);
+    setFilePreview(preview);
+
+    return () => URL.revokeObjectURL(preview);
+  }, [file]);
+
+  const previewLogo = useMemo(() => filePreview || logoUrl, [filePreview, logoUrl]);
+
+  const resolveLogoValue = async () => {
     if (!file) return logoUrl.trim();
 
-    const extension = file.name.split('.').pop() || 'png';
-    const path = `logos/${Date.now()}-${sanitizeFileName(file.name) || `logo.${extension}`}`;
-    const { error: uploadError } = await supabase.storage.from(BRANDING_BUCKET).upload(path, file, {
-      cacheControl: '3600',
-      upsert: true,
-      contentType: file.type,
-    });
+    if (file.size > MAX_LOGO_SIZE_BYTES) {
+      throw new Error('El logo es demasiado grande. Usa una imagen menor de 750 KB o pega una URL pública.');
+    }
 
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage.from(BRANDING_BUCKET).getPublicUrl(path);
-    return data.publicUrl;
+    return fileToDataUrl(file);
   };
 
   const handleSubmit = async (event) => {
@@ -51,12 +59,12 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
     setNotice(null);
 
     try {
-      const uploadedLogoUrl = await uploadLogoIfNeeded();
+      const finalLogoUrl = await resolveLogoValue();
       const { error } = await supabase.from('clinic_settings').upsert(
         {
           id: SETTINGS_ID,
           clinic_name: clinicName.trim() || DEFAULT_BRANDING.clinicName,
-          logo_url: uploadedLogoUrl,
+          logo_url: finalLogoUrl,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' },
@@ -64,14 +72,14 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
 
       if (error) throw error;
 
-      setLogoUrl(uploadedLogoUrl);
+      setLogoUrl(finalLogoUrl);
       setFile(null);
       setNotice({ type: 'success', text: 'Marca actualizada. El logo y nombre aparecerán también a los pacientes.' });
       await onBrandingUpdated?.();
     } catch (error) {
       setNotice({
         type: 'error',
-        text: `No se pudo guardar la personalización: ${error.message}. Revisa que exista la tabla clinic_settings y el bucket público branding.`,
+        text: `No se pudo guardar la personalización: ${error.message}. Revisa que exista la tabla clinic_settings.`,
       });
     }
 
@@ -83,7 +91,7 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
       <SectionHeader
         eyebrow="Marca de la clínica"
         title="Personalizar logo e identidad"
-        description="Sube un logo o pega una URL de imagen. La configuración se guarda en Supabase para todos los usuarios."
+        description="Sube un logo pequeño o pega una URL de imagen. Ya no necesitas crear un bucket de Storage para guardar el logo."
       />
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,7 +108,7 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
             onChange={(event) => setFile(event.target.files?.[0] || null)}
           />
-          <p className="mt-2 text-xs text-slate-400">Recomendado: PNG/WebP cuadrado, mínimo 256×256 px.</p>
+          <p className="mt-2 text-xs text-slate-400">Recomendado: PNG/WebP cuadrado y menor de 750 KB.</p>
         </div>
 
         <div>
@@ -108,12 +116,12 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
           <input className="input" type="url" value={logoUrl} onChange={(event) => setLogoUrl(event.target.value)} placeholder="https://..." />
         </div>
 
-        {(file || logoUrl) && (
+        {previewLogo && (
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
             <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Vista previa</p>
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-sm">
-                <img src={file ? URL.createObjectURL(file) : logoUrl} alt="Vista previa del logo" className="h-full w-full object-cover" />
+                <img src={previewLogo} alt="Vista previa del logo" className="h-full w-full object-cover" />
               </div>
               <div>
                 <p className="text-xl font-black text-slate-950">{clinicName || DEFAULT_BRANDING.clinicName}</p>

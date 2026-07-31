@@ -174,6 +174,7 @@ export default function AppointmentCalendar() {
                   <p className="font-black text-slate-950">{appointment.name}</p>
                   <p className="mt-1 font-semibold text-sky-700">{appointment.treatment}</p>
                   <p className="mt-2 text-slate-500">🕒 {formatAppointmentDate(appointment.date)}</p>
+                  <p className="text-slate-500">✉️ {appointment.patient_email || 'Sin email asignado'}</p>
                   <p className="text-slate-500">📞 {appointment.phone}</p>
                 </article>
               ))

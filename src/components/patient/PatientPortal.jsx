@@ -20,7 +20,7 @@ export default function PatientPortal({ user, branding }) {
           <PatientAppointments user={user} />
           <ChatModule user={user} senderLabel="Paciente" />
         </div>
-        <ExerciseList />
+        <ExerciseList user={user} />
       </div>
     </div>
   );

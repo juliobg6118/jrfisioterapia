@@ -6,13 +6,17 @@ import Alert from '../common/Alert';
 const initialForm = {
   email: '',
   password: '',
+  phone: '',
+  otp: '',
 };
 
 export default function AuthScreen({ branding }) {
   const [mode, setMode] = useState('login');
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' | 'phone'
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
 
   const isLogin = mode === 'login';
 
@@ -21,27 +25,83 @@ export default function AuthScreen({ branding }) {
     setLoading(true);
     setMessage(null);
 
-    const credentials = {
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-    };
+    if (loginMethod === 'email') {
+      const credentials = {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      };
 
-    const { error } = isLogin
-      ? await supabase.auth.signInWithPassword(credentials)
-      : await supabase.auth.signUp(credentials);
+      const { error } = isLogin
+        ? await supabase.auth.signInWithPassword(credentials)
+        : await supabase.auth.signUp(credentials);
 
-    if (error) {
-      setMessage({ type: 'error', text: error.message });
-    } else if (isLogin) {
-      setMessage({ type: 'success', text: 'Sesión iniciada correctamente.' });
+      if (error) {
+        setMessage({ type: 'error', text: error.message });
+      } else if (isLogin) {
+        setMessage({ type: 'success', text: 'Sesión iniciada correctamente.' });
+      } else {
+        setMessage({
+          type: 'success',
+          text: 'Cuenta creada. Si Supabase requiere confirmación, revisa tu correo antes de iniciar sesión.',
+        });
+      }
     } else {
-      setMessage({
-        type: 'success',
-        text: 'Cuenta creada. Si Supabase requiere confirmación, revisa tu correo antes de iniciar sesión.',
-      });
+      // Phone + OTP flow
+      const phone = form.phone.trim();
+
+      if (!isLogin && !otpSent) {
+        // Register: sign up with phone and then send OTP
+        const { error } = await supabase.auth.signUp({ phone });
+        if (error) {
+          setMessage({ type: 'error', text: error.message });
+        } else {
+          setOtpSent(true);
+          setMessage({
+            type: 'success',
+            text: 'Se ha enviado un código de verificación a tu teléfono. Introdúcelo a continuación.',
+          });
+        }
+      } else if (isLogin && !otpSent) {
+        // Login: send OTP
+        const { error } = await supabase.auth.signInWithOtp({ phone });
+        if (error) {
+          setMessage({ type: 'error', text: error.message });
+        } else {
+          setOtpSent(true);
+          setMessage({
+            type: 'success',
+            text: 'Se ha enviado un código OTP a tu teléfono. Introdúcelo para continuar.',
+          });
+        }
+      } else {
+        // Verify OTP
+        const { error } = await supabase.auth.verifyOtp({
+          phone,
+          token: form.otp.trim(),
+          type: isLogin ? 'sms' : 'signup',
+        });
+
+        if (error) {
+          setMessage({ type: 'error', text: error.message });
+        } else {
+          setMessage({ type: 'success', text: 'Sesión iniciada correctamente.' });
+        }
+      }
     }
 
     setLoading(false);
+  };
+
+  const handleMethodChange = (method) => {
+    setLoginMethod(method);
+    setMessage(null);
+    setOtpSent(false);
+  };
+
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setMessage(null);
+    setOtpSent(false);
   };
 
   return (
@@ -82,7 +142,7 @@ export default function AuthScreen({ branding }) {
           <div className="mb-6 flex rounded-2xl bg-slate-100 p-1">
             <button
               type="button"
-              onClick={() => setMode('login')}
+              onClick={() => handleModeChange('login')}
               className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold transition ${
                 isLogin ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
@@ -91,7 +151,7 @@ export default function AuthScreen({ branding }) {
             </button>
             <button
               type="button"
-              onClick={() => setMode('register')}
+              onClick={() => handleModeChange('register')}
               className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold transition ${
                 !isLogin ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
@@ -108,38 +168,123 @@ export default function AuthScreen({ branding }) {
             </p>
           </div>
 
+          {/* Login method toggle */}
+          <div className="mb-6 flex rounded-2xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => handleMethodChange('email')}
+              className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+                loginMethod === 'email' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              📧 Correo electrónico
+            </button>
+            <button
+              type="button"
+              onClick={() => handleMethodChange('phone')}
+              className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+                loginMethod === 'phone' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              📱 Teléfono móvil
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">Correo electrónico</label>
-              <input
-                className="input"
-                type="email"
-                autoComplete="email"
-                required
-                value={form.email}
-                onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                placeholder="paciente@email.com"
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">Contraseña</label>
-              <input
-                className="input"
-                type="password"
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                minLength={6}
-                required
-                value={form.password}
-                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                placeholder="Mínimo 6 caracteres"
-              />
-            </div>
+            {loginMethod === 'email' ? (
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">Correo electrónico</label>
+                  <input
+                    className="input"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={form.email}
+                    onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                    placeholder="paciente@email.com"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">Contraseña</label>
+                  <input
+                    className="input"
+                    type="password"
+                    autoComplete={isLogin ? 'current-password' : 'new-password'}
+                    minLength={6}
+                    required
+                    value={form.password}
+                    onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">Teléfono móvil</label>
+                  <input
+                    className="input"
+                    type="tel"
+                    autoComplete="tel"
+                    required
+                    value={form.phone}
+                    onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
+                    placeholder="+34 611 223 344"
+                    disabled={otpSent}
+                  />
+                  <p className="mt-2 text-xs text-slate-400">Incluye el código de país, ej. +34 para España.</p>
+                </div>
+                {otpSent && (
+                  <div>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">Código de verificación</label>
+                    <input
+                      className="input"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      required
+                      value={form.otp}
+                      onChange={(event) => setForm((current) => ({ ...current, otp: event.target.value }))}
+                      placeholder="Código de 6 dígitos"
+                      autoFocus
+                    />
+                    <p className="mt-2 text-xs text-slate-400">Revisa los mensajes SMS en tu teléfono.</p>
+                  </div>
+                )}
+              </>
+            )}
 
             {message && <Alert type={message.type}>{message.text}</Alert>}
 
             <button className="btn-primary w-full" type="submit" disabled={loading}>
-              {loading ? 'Procesando...' : isLogin ? 'Entrar a FisioPro' : 'Crear cuenta segura'}
+              {loading
+                ? 'Procesando...'
+                : loginMethod === 'phone' && !otpSent
+                  ? isLogin
+                    ? 'Enviar código SMS'
+                    : 'Registrarse con teléfono'
+                  : loginMethod === 'phone' && otpSent
+                    ? 'Verificar código'
+                    : isLogin
+                      ? 'Entrar a FisioPro'
+                      : 'Crear cuenta segura'}
             </button>
+
+            {loginMethod === 'phone' && otpSent && (
+              <button
+                type="button"
+                className="w-full text-center text-sm font-semibold text-sky-600 hover:text-sky-800"
+                onClick={() => {
+                  setOtpSent(false);
+                  setForm((current) => ({ ...current, otp: '' }));
+                  setMessage(null);
+                }}
+              >
+                ¿No recibiste el código? Volver a intentarlo
+              </button>
+            )}
           </form>
         </section>
       </div>

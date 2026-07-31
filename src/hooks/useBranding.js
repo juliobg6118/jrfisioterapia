@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { DEFAULT_BRANDING } from '../config/constants';
 import { supabase } from '../supabaseClient';
+import {
+  BRANDING_UPDATED_EVENT,
+  getLocalBranding,
+  isMissingClinicSettingsTable,
+  normalizeBranding,
+} from '../utils/brandingStorage';
 
 const SETTINGS_ID = 'main';
 
 export default function useBranding() {
-  const [branding, setBranding] = useState(DEFAULT_BRANDING);
+  const [branding, setBranding] = useState(() => getLocalBranding());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [usingLocalFallback, setUsingLocalFallback] = useState(false);
 
   const loadBranding = useCallback(async () => {
     const { data, error: loadError } = await supabase
@@ -17,14 +24,18 @@ export default function useBranding() {
       .maybeSingle();
 
     if (loadError) {
-      setError(loadError.message);
-      setBranding(DEFAULT_BRANDING);
+      if (isMissingClinicSettingsTable(loadError)) {
+        setError(null);
+        setUsingLocalFallback(true);
+        setBranding(getLocalBranding());
+      } else {
+        setError(loadError.message);
+        setBranding(getLocalBranding() || DEFAULT_BRANDING);
+      }
     } else {
       setError(null);
-      setBranding({
-        clinicName: data?.clinic_name || DEFAULT_BRANDING.clinicName,
-        logoUrl: data?.logo_url || DEFAULT_BRANDING.logoUrl,
-      });
+      setUsingLocalFallback(false);
+      setBranding(normalizeBranding(data));
     }
 
     setLoading(false);
@@ -38,8 +49,16 @@ export default function useBranding() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clinic_settings' }, loadBranding)
       .subscribe();
 
+    const handleLocalBrandingUpdate = (event) => {
+      setBranding(normalizeBranding(event.detail));
+      setUsingLocalFallback(true);
+    };
+
+    window.addEventListener(BRANDING_UPDATED_EVENT, handleLocalBrandingUpdate);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener(BRANDING_UPDATED_EVENT, handleLocalBrandingUpdate);
     };
   }, [loadBranding]);
 
@@ -47,6 +66,7 @@ export default function useBranding() {
     branding,
     loading,
     error,
+    usingLocalFallback,
     refreshBranding: loadBranding,
   };
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_BRANDING } from '../../config/constants';
 import { supabase } from '../../supabaseClient';
+import { isMissingClinicSettingsTable, saveLocalBranding } from '../../utils/brandingStorage';
 import Alert from '../common/Alert';
 import SectionHeader from '../common/SectionHeader';
 
@@ -77,10 +78,24 @@ export default function BrandingCustomizer({ branding, onBrandingUpdated }) {
       setNotice({ type: 'success', text: 'Marca actualizada. El logo y nombre aparecerán también a los pacientes.' });
       await onBrandingUpdated?.();
     } catch (error) {
-      setNotice({
-        type: 'error',
-        text: `No se pudo guardar la personalización: ${error.message}. Revisa que exista la tabla clinic_settings.`,
-      });
+      if (isMissingClinicSettingsTable(error)) {
+        const localBranding = saveLocalBranding({
+          clinicName: clinicName.trim() || DEFAULT_BRANDING.clinicName,
+          logoUrl: await resolveLogoValue(),
+        });
+        setLogoUrl(localBranding.logoUrl);
+        setFile(null);
+        setNotice({
+          type: 'success',
+          text: 'Marca guardada en este navegador. Para que se sincronice con todos los pacientes, crea la tabla clinic_settings en Supabase.',
+        });
+        await onBrandingUpdated?.();
+      } else {
+        setNotice({
+          type: 'error',
+          text: `No se pudo guardar la personalización: ${error.message}`,
+        });
+      }
     }
 
     setLoading(false);

@@ -2,10 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/jrfisioterapia/',
+  root: 'src',
+  base: '/jrfisioterapia/docs/',
   plugins: [react()],
   build: {
-    outDir: 'docs',
+    outDir: '../docs',
     emptyOutDir: true,
   },
 });

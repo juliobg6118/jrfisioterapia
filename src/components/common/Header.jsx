@@ -1,15 +1,15 @@
 import { getInitials } from '../../utils/formatters';
 
-export default function Header({ user, role, onSignOut }) {
+export default function Header({ user, role, onSignOut, branding }) {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-500 font-black text-white shadow-lg shadow-sky-200">
-            FP
+          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-500 font-black text-white shadow-lg shadow-sky-200">
+            {branding?.logoUrl ? <img src={branding.logoUrl} alt={branding.clinicName} className="h-full w-full object-cover" /> : 'FP'}
           </div>
           <div>
-            <p className="text-xl font-black tracking-tight text-slate-950">FisioPro</p>
+            <p className="text-xl font-black tracking-tight text-slate-950">{branding?.clinicName || 'FisioPro'}</p>
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-sky-600">
               {role === 'admin' ? 'Panel fisioterapeuta' : 'Portal paciente'}
             </p>

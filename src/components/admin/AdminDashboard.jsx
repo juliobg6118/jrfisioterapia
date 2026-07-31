@@ -1,8 +1,10 @@
+import AppointmentCalendar from './AppointmentCalendar';
 import AppointmentManager from './AppointmentManager';
+import BrandingCustomizer from './BrandingCustomizer';
 import ExercisePublisher from './ExercisePublisher';
 import ChatModule from '../patient/ChatModule';
 
-export default function AdminDashboard({ user }) {
+export default function AdminDashboard({ user, branding, onBrandingUpdated }) {
   return (
     <div className="space-y-8">
       <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft">
@@ -22,8 +24,10 @@ export default function AdminDashboard({ user }) {
       </section>
 
       <div className="grid gap-8 xl:grid-cols-2">
+        <AppointmentCalendar />
         <AppointmentManager />
         <ExercisePublisher />
+        <BrandingCustomizer branding={branding} onBrandingUpdated={onBrandingUpdated} />
       </div>
 
       <ChatModule user={user} senderLabel="Fisioterapeuta" />

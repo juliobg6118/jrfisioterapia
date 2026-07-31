@@ -8,7 +8,7 @@ const initialForm = {
   password: '',
 };
 
-export default function AuthScreen() {
+export default function AuthScreen({ branding }) {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
@@ -52,6 +52,15 @@ export default function AuthScreen() {
           <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-sky-100 backdrop-blur">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             Plataforma clínica conectada a Supabase
+          </div>
+          <div className="mb-6 flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-white/15 text-xl font-black shadow-2xl ring-1 ring-white/10">
+              {branding?.logoUrl ? <img src={branding.logoUrl} alt={branding.clinicName} className="h-full w-full object-cover" /> : 'FP'}
+            </div>
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.25em] text-sky-100">Clínica</p>
+              <p className="text-2xl font-black">{branding?.clinicName || 'FisioPro'}</p>
+            </div>
           </div>
           <h1 className="max-w-3xl text-5xl font-black tracking-tight sm:text-6xl">
             FisioPro para pacientes y fisioterapeutas.

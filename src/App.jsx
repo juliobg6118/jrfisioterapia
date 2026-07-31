@@ -4,11 +4,13 @@ import Header from './components/common/Header';
 import AdminDashboard from './components/admin/AdminDashboard';
 import PatientPortal from './components/patient/PatientPortal';
 import { ADMIN_EMAIL } from './config/constants';
+import useBranding from './hooks/useBranding';
 import { supabase } from './supabaseClient';
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { branding, refreshBranding } = useBranding();
 
   useEffect(() => {
     let mounted = true;
@@ -52,14 +54,18 @@ export default function App() {
   }
 
   if (!session || !user) {
-    return <AuthScreen />;
+    return <AuthScreen branding={branding} />;
   }
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header user={user} role={role} onSignOut={handleSignOut} />
+      <Header user={user} role={role} onSignOut={handleSignOut} branding={branding} />
       <main className="mx-auto max-w-7xl px-4 py-8">
-        {role === 'admin' ? <AdminDashboard user={user} /> : <PatientPortal user={user} />}
+        {role === 'admin' ? (
+          <AdminDashboard user={user} branding={branding} onBrandingUpdated={refreshBranding} />
+        ) : (
+          <PatientPortal user={user} branding={branding} />
+        )}
       </main>
     </div>
   );

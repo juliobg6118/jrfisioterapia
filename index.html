@@ -3,169 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FisioPro - Plataforma Cloud en Tiempo Real</title>
+    <title>FisioPro - React Cloud Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <div class="bg-sky-600 text-white p-2 rounded-lg font-bold text-xl">FP</div>
-                <span class="text-xl font-bold text-slate-900">FisioPro <span class="text-sky-600 text-sm font-normal">Cloud Edition</span></span>
-            </div>
-            <div class="space-x-2">
-                <button onclick="switchView('patient')" id="btnPatient" class="px-4 py-2 text-sm font-medium rounded-lg bg-sky-600 text-white transition">Portal Pacientes</button>
-                <button onclick="switchView('admin')" id="btnAdmin" class="px-4 py-2 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Panel Fisioterapeuta</button>
-            </div>
-        </div>
-    </header>
+    <div id="root"></div>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-        <div id="patientView" class="space-y-8">
-            <div class="bg-gradient-to-r from-sky-600 to-cyan-700 rounded-2xl p-8 text-white shadow-lg">
-                <h1 class="text-3xl font-bold mb-2">Plataforma Médica Interactiva</h1>
-                <p class="text-sky-100 max-w-xl">Reserva tu cita, consulta tus ejercicios personalizados en la nube y chatea directamente con tu fisio.</p>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="md:col-span-2 space-y-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-bold text-slate-900 mb-4">📅 Reservar Cita Online</h2>
-                        <form id="appointmentForm" class="grid sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Nombre Completo</label>
-                                <input type="text" id="pName" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Ej. Ana Pérez">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Teléfono</label>
-                                <input type="tel" id="pPhone" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Ej. 600112233">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Tratamiento</label>
-                                <select id="pTreatment" class="w-full p-3 border border-slate-300 rounded-xl">
-                                    <option>Fisioterapia Deportiva</option>
-                                    <option>Rehabilitación Lesiones</option>
-                                    <option>Osteopatía</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold mb-1">Fecha y Hora</label>
-                                <input type="datetime-local" id="pDate" required class="w-full p-3 border border-slate-300 rounded-xl">
-                            </div>
-                            <div class="sm:col-span-2">
-                                <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Confirmar Cita en la Nube</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-bold text-slate-900 mb-4">💬 Chat en Directo</h2>
-                        <div id="chatBox" class="h-64 overflow-y-auto bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 space-y-3">
-                            <p class="text-slate-400 text-sm text-center">Cargando mensajes...</p>
-                        </div>
-                        <form id="chatForm" class="flex gap-2">
-                            <input type="text" id="chatInput" placeholder="Escribe un mensaje al fisio..." class="flex-1 p-3 border border-slate-300 rounded-xl" required>
-                            <button type="submit" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-slate-800 transition">Enviar</button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-bold text-slate-900 mb-4">🏋️ Ejercicios Asignados</h2>
-                        <div id="patientExercisesList" class="space-y-4">
-                            <p class="text-slate-400 text-sm">Cargando ejercicios...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="adminView" class="hidden space-y-8">
-            <div id="adminLogin" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">Panel Fisioterapeuta</h2>
-                <p class="text-slate-500 text-sm mb-6">Introduce la clave de administración.</p>
-                <form id="loginForm" class="space-y-4">
-                    <input type="password" id="adminPassword" placeholder="Contraseña (fisio123)" required class="w-full p-3 border border-slate-300 rounded-xl">
-                    <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition">Entrar</button>
-                </form>
-            </div>
-
-            <div id="adminDashboard" class="hidden space-y-8">
-                <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="text-2xl font-bold text-slate-900">Panel de Control General</h2>
-                    <button onclick="logoutAdmin()" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl font-semibold hover:bg-rose-100 transition">Salir</button>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-900 mb-4">➕ Añadir Ejercicio</h3>
-                        <form id="exerciseForm" class="space-y-4">
-                            <input type="text" id="exTitle" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Título del ejercicio">
-                            <textarea id="exDesc" rows="3" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="Instrucciones..."></textarea>
-                            <input type="url" id="exImage" required class="w-full p-3 border border-slate-300 rounded-xl" placeholder="URL de la imagen (ej. enlace de Unsplash)">
-                            <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Guardar en Supabase</button>
-                        </form>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-900 mb-4">📅 Citas en la Nube</h3>
-                        <div id="adminAppointmentsList" class="space-y-3">
-                            <p class="text-slate-400 text-sm">Cargando citas...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        // --- CONFIGURACIÓN DE SUPABASE (YA INTEGRADA) ---
+        // Conexión a tu Supabase
         const SUPABASE_URL = 'https://tgasxosyzgurpwqkcvnv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Qv8Jvia0LRpj8-SWiKr2ZQ_zhuPi06t';
-        
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function switchView(view) {
-            if(view === 'patient') {
-                document.getElementById('patientView').classList.remove('hidden');
-                document.getElementById('adminView').classList.add('hidden');
-                document.getElementById('btnPatient').className = "px-4 py-2 text-sm font-medium rounded-lg bg-sky-600 text-white transition";
-                document.getElementById('btnAdmin').className = "px-4 py-2 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
-            } else {
-                document.getElementById('patientView').classList.add('hidden');
-                document.getElementById('adminView').classList.remove('hidden');
-                document.getElementById('btnAdmin').className = "px-4 py-2 text-sm font-medium rounded-lg bg-sky-600 text-white transition";
-                document.getElementById('btnPatient').className = "px-4 py-2 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
-            }
+        function App() {
+            const [view, setView] = useState('patient');
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center w-full">
+                            <div className="flex items-center space-x-2">
+                                <div className="bg-sky-600 text-white p-2 rounded-lg font-bold text-xl">FP</div>
+                                <span className="text-xl font-bold text-slate-900">FisioPro <span className="text-sky-600 text-sm font-normal">React Cloud</span></span>
+                            </div>
+                            <div className="space-x-2">
+                                <button 
+                                    onClick={() => setView('patient')} 
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition ${view === 'patient' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                                    Portal Pacientes
+                                </button>
+                                <button 
+                                    onClick={() => setView('admin')} 
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition ${view === 'admin' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                                    Panel Fisioterapeuta
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
+                        {view === 'patient' ? <PatientPortal /> : <AdminDashboard isAdminLoggedIn={isAdminLoggedIn} setIsAdminLoggedIn={setIsAdminLoggedIn} />}
+                    </main>
+                </div>
+            );
         }
 
-        // Login Admin
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            if(document.getElementById('adminPassword').value === 'fisio123') {
-                document.getElementById('adminLogin').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                fetchAdminAppointments();
-            } else {
-                alert('Contraseña incorrecta (prueba: fisio123)');
-            }
-        });
+        // Componente: Portal del Paciente
+        function PatientPortal() {
+            const [appointments, setAppointments] = useState([]);
+            const [exercises, setExercises] = useState([]);
+            const [messages, setMessages] = useState([]);
+            const [form, setForm] = useState({ name: '', phone: '', treatment: 'Fisioterapia Deportiva', date: '' });
+            const [chatText, setChatText] = useState('');
 
-        function logoutAdmin() {
-            document.getElementById('adminLogin').classList.remove('hidden');
-            document.getElementById('adminDashboard').classList.add('hidden');
+            useEffect(() => {
+                fetchExercises();
+                fetchMessages();
+
+                // Tiempo real
+                const channel = supabase.channel('patient-realtime')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises' }, () => fetchExercises())
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchMessages())
+                    .subscribe();
+
+                return () => { supabase.removeChannel(channel); };
+            }, []);
+
+            const fetchExercises = async () => {
+                const { data } = await supabase.from('exercises').select('*');
+                if (data) setExercises(data);
+            };
+
+            const fetchMessages = async () => {
+                const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+                if (data) setMessages(data);
+            };
+
+            const handleAppointmentSubmit = async (e) => {
+                e.preventDefault();
+                const { error } = await supabase.from('appointments').insert([form]);
+                if (error) alert('Error al reservar: ' + error.message);
+                else {
+                    alert('¡Cita reservada con éxito en la nube!');
+                    setForm({ name: '', phone: '', treatment: 'Fisioterapia Deportiva', date: '' });
+                }
+            };
+
+            const handleSendMessage = async (e) => {
+                e.preventDefault();
+                if (!chatText.trim()) return;
+                await supabase.from('messages').insert([{ sender: 'Paciente', text: chatText }]);
+                setChatText('');
+                fetchMessages();
+            };
+
+            return (
+                <div className="space-y-8 animate-fadeIn">
+                    <div className="bg-gradient-to-r from-sky-600 to-cyan-700 rounded-2xl p-8 text-white shadow-lg">
+                        <h1 className="text-3xl font-bold mb-2">Clínica Fisioterapia Avanzada</h1>
+                        <p className="text-sky-100 max-w-xl">Reserva tu cita online, consulta tus ejercicios interactivos en la nube y comunícate con tu especialista en tiempo real.</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 space-y-8">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">📅 Reservar Cita Online</h2>
+                                <form onSubmit={handleAppointmentSubmit} className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1">Nombre Completo</label>
+                                        <input type="text" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Ej. Carlos Ruiz" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1">Teléfono</label>
+                                        <input type="tel" required value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Ej. 611223344" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1">Tratamiento</label>
+                                        <select value={form.treatment} onChange={e => setForm({...form, treatment: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                                            <option>Fisioterapia Deportiva</option>
+                                            <option>Rehabilitación Postquirúrgica</option>
+                                            <option>Osteopatía y Columna</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1">Fecha y Hora</label>
+                                        <input type="datetime-local" required value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <button type="submit" className="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition shadow-sm">Confirmar Cita</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">💬 Chat Directo con el Fisio</h2>
+                                <div className="h-64 overflow-y-auto bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 space-y-3">
+                                    {messages.length === 0 ? (
+                                        <p className="text-slate-400 text-sm text-center">No hay mensajes todavía. ¡Escribe al fisio!</p>
+                                    ) : (
+                                        messages.map((msg, index) => {
+                                            const isPatient = msg.sender === 'Paciente';
+                                            return (
+                                                <div key={index} className={`p-3 rounded-xl shadow-xs max-w-md ${isPatient ? 'ml-auto bg-sky-50 border border-sky-100 text-right' : 'bg-white border border-slate-100'}`}>
+                                                    <span className={`text-xs font-bold ${isPatient ? 'text-sky-800' : 'text-sky-600'} block`}>{msg.sender}</span>
+                                                    <p className="text-sm text-slate-700">{msg.text}</p>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                                <form onSubmit={handleSendMessage} className="flex gap-2">
+                                    <input type="text" value={chatText} onChange={e => setChatText(e.target.value)} placeholder="Escribe tu consulta aquí..." className="flex-1 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" required />
+                                    <button type="submit" className="bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-slate-800 transition">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">🏋️ Ejercicios Asignados</h2>
+                                <div className="space-y-4">
+                                    {exercises.length === 0 ? (
+                                        <p className="text-slate-400 text-sm">No hay ejercicios publicados todavía.</p>
+                                    ) : (
+                                        exercises.map((ex, index) => (
+                                            <div key={index} className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 shadow-xs">
+                                                <img src={ex.image} alt={ex.title} className="w-full h-32 object-cover" />
+                                                <div className="p-4">
+                                                    <h4 className="font-bold text-slate-900">{ex.title}</h4>
+                                                    <p className="text-xs text-slate-600 mt-1">{ex.description}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
-        // --- FUNCIONES DE CONEXIÓN CON SUPABASE ---
+        // Componente: Panel del Fisioterapeuta
+        function AdminDashboard({ isAdminLoggedIn, setIsAdminLoggedIn }) {
+            const [password, setPassword] = useState('');
+            const [appointments, setAppointments] = useState([]);
+            const [exForm, setExForm] = useState({ title: '', description: '', image: '' });
 
-        // 1. Citas
-        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const { error } = await _supabase.from('appointments').insert([{
-                name: document.getElementById('pName').value,
-                phone: document.getElementById('
+            useEffect(() => {
+                if (isAdminLoggedIn) fetchAppointments();
+            }, [isAdminLoggedIn]);
+
+            const fetchAppointments = async () => {
+                const { data } = await supabase.from('appointments').select('*');
+                if (data) setAppointments(data);
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (password === 'fisio123') {
+                    setIsAdminLoggedIn(true);
+                } else {
+                    alert('Contraseña incorrecta (prueba: fisio123)');
+                }
+            };
+
+            const handleExerciseSubmit = async (e) => {
+                e.preventDefault();
+                const { error } = await supabase.from('exercises').insert([exForm]);
+                if (error) alert('Error: ' + error.message);
+                else {
+                    alert('¡Ejercicio publicado para todos los pacientes!');
+                    setExForm({ title: '', description: '', image: '' });
+                }
+            };
+
+            const handleDeleteAppointment = async (id) => {
+                await supabase.from('appointments').delete().eq('id', id);
+                fetchAppointments();
+            };
+
+            if (!isAdminLoggedIn) {
+                return (
+                    <div className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center my-12">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Panel Fisioterapeuta</h2>
+                        <p className="text-slate-500 text-sm mb-6">Introduce la clave de administración.</p>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña (fisio123)" required className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+                            <button type="submit" className="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition">Entrar al Panel</button>
+                        </form>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-8 animate-fadeIn">
+                    <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-900">Panel de Control General</h2>
+                            <p className="text-slate-500 text-sm">Gestiona citas de pacientes y publica rutinas en tiempo real.</p>
+                        </div>
+                        <button onClick={() => setIsAdminLoggedIn(false)} className="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl font-semibold hover:bg-rose-100 transition">Cerrar Sesión</button>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 className="text-lg font-bold text-slate-900 mb-4">➕ Publicar Ejercicio</h3>
+                            <form onSubmit={handleExerciseSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Título</label>
+                                    <input type="text" required value={exForm.title} onChange={e => setExForm({...exForm, title: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl" placeholder="Ej. Estiramiento lumbar" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Instrucciones</label>
+                                    <textarea rows="3" required value={exForm.description} onChange={e => setExForm({...exForm, description: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl" placeholder="Duración, series, etc..."></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">URL de Imagen</label>
+                                    <input type="url" required value={exForm.image} onChange={e => setExForm({...exForm, image: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl" placeholder="https://images.unsplash.com/..." />
+                                </div>
+                                <button type="submit" className="w-full bg-sky-600 text-white font-semibold py-3 rounded-xl hover:bg-sky-700 transition">Guardar Ejercicio</button>
+                            </form>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 className="text-lg font-bold text-slate-900 mb-4">📅 Citas Recibidas</h3>
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {appointments.length === 0 ? (
+                                    <p className="text-slate-400 text-sm">No hay citas agendadas.</p>
+                                ) : (
+                                    appointments.map((app) => (
+                                        <div key={app.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-sm">
+                                            <div>
+                                                <strong>{app.name}</strong> ({app.treatment})<br />
+                                                <span className="text-xs text-slate-500">🕒 {app.date.replace('T', ' ')} - 📞 {app.phone}</span>
+                                            </div>
+                                            <button onClick={() => handleDeleteAppointment(app.id)} className="text-rose-600 font-bold hover:underline text-xs">Eliminar</button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

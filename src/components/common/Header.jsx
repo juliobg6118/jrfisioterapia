@@ -1,6 +1,9 @@
 import { getInitials } from '../../utils/formatters';
 
 export default function Header({ user, role, onSignOut, branding }) {
+  const displayName = user?.email || user?.phone || 'Usuario';
+  const identifierLabel = user?.phone ? 'Teléfono autenticado' : 'Sesión autenticada';
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
@@ -18,11 +21,11 @@ export default function Header({ user, role, onSignOut, branding }) {
 
         <div className="flex items-center gap-3">
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-semibold text-slate-900">{user?.email}</p>
-            <p className="text-xs text-slate-500">Sesión autenticada</p>
+            <p className="text-sm font-semibold text-slate-900">{displayName}</p>
+            <p className="text-xs text-slate-500">{identifierLabel}</p>
           </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-700">
-            {getInitials(user?.email)}
+            {user?.email ? getInitials(user.email) : user?.phone ? '📱' : 'FP'}
           </div>
           <button onClick={onSignOut} className="btn-danger">
             Salir

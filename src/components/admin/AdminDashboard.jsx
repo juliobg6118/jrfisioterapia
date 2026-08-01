@@ -3,12 +3,16 @@ import AppointmentManager from './AppointmentManager';
 import BrandingCustomizer from './BrandingCustomizer';
 import ExercisePublisher from './ExercisePublisher';
 import ChatModule from '../patient/ChatModule';
+import Scene3D from '../common/Scene3D/Lazy';
 
 export default function AdminDashboard({ user, branding, onBrandingUpdated }) {
   return (
     <div className="space-y-8">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft">
+        <div className="absolute inset-0 opacity-15">
+          <Scene3D />
+        </div>
+        <div className="relative z-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
           <div>
             <p className="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-sky-600">Acceso exclusivo administrador</p>
             <h1 className="text-4xl font-black tracking-tight text-slate-950">Panel de Control del Fisioterapeuta</h1>

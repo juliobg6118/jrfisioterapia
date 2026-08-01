@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { ADMIN_EMAIL } from '../../config/constants';
 import Alert from '../common/Alert';
+import Scene3D from '../common/Scene3D/Lazy';
 
 const initialForm = {
   email: '',
@@ -107,8 +108,14 @@ export default function AuthScreen({ branding }) {
   return (
     <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
       <div className="absolute inset-0 opacity-40 [background:radial-gradient(circle_at_top_left,#0ea5e9,transparent_35%),radial-gradient(circle_at_bottom_right,#14b8a6,transparent_30%)]" />
+
+      {/* 3D Scene background */}
+      <div className="absolute inset-0 opacity-30">
+        <Scene3D />
+      </div>
+
       <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr]">
-        <section>
+        <section className="relative z-10">
           <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-sky-100 backdrop-blur">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             Plataforma clínica conectada a Supabase
@@ -138,7 +145,7 @@ export default function AuthScreen({ branding }) {
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-white/10 bg-white p-6 text-slate-950 shadow-2xl sm:p-8">
+        <section className="relative z-10 rounded-[2rem] border border-white/10 bg-white/95 p-6 text-slate-950 shadow-2xl backdrop-blur-xl sm:p-8">
           <div className="mb-6 flex rounded-2xl bg-slate-100 p-1">
             <button
               type="button"

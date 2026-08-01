@@ -47,7 +47,7 @@ export default function App() {
       <div className="grid min-h-screen place-items-center bg-slate-950 text-white">
         <div className="text-center">
           <div className="mx-auto mb-5 h-12 w-12 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
-          <p className="font-semibold">Conectando con FisioPro...</p>
+          <p className="font-semibold">Conectando con Fisioterapia...</p>
         </div>
       </div>
     );

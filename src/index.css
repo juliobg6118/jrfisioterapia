@@ -6,10 +6,10 @@
 
 :root {
   color-scheme: light;
-  --jr-aquamarina: #13b8a6;
+  --jr-aquamarina: #0f4c4c;
   --jr-aquamarina-dark: #062f2e;
-  --jr-graphite: #101d1b;
-  --jr-off-white: #f7faf9;
+  --jr-graphite: #041818;
+  --jr-off-white: #f4f9f8;
 }
 
 html {
@@ -55,15 +55,15 @@ textarea {
   }
 
   .input {
-    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100;
+    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0f4c4c] focus:ring-4 focus:ring-[#0f4c4c]/10;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-2xl bg-sky-600 px-5 py-3 font-extrabold text-white shadow-sm shadow-sky-100 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl bg-[#0f4c4c] px-5 py-3 font-extrabold text-white shadow-sm shadow-[#0f4c4c]/20 transition hover:bg-[#062f2e] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-2xl bg-[#041818] px-5 py-3 font-extrabold text-white shadow-sm transition hover:bg-[#062f2e] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-danger {
